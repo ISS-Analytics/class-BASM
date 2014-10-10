@@ -1,0 +1,26 @@
+---
+title: "Sampling and Inference"
+author: "Soumya Ray"
+date: "October 11, 2014"
+output:
+  ioslides_presentation:
+    widescreen: yes
+---
+
+## Sampling Process and Inferential Error {.smaller .columns-2}
+We can create a population and then create a noisy sampling frame.
+```{r}
+N=10000
+n=150
+pop <- rnorm(N, mean=22, sd=5)
+noisy.frame <- pop + rnorm( length(pop), sd=4 )
+noisy.sample <- sample(noisy.frame, size=n)
+```
+This increases the 'dispersion'
+
+
+```{r plot, width = '350px', fig.height=5, fig.width=5}
+# Plot the population and noisy sampling frame
+plot(density(pop))
+lines(density(noisy.sample), lty="dashed")
+```
