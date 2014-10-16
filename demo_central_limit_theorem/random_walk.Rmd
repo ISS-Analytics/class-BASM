@@ -1,0 +1,58 @@
+# Random Walks
+
+## CONVERGENCE OF BINOMIAL PROBABILITIES
+```{r}
+n <- 10000
+flips <- rbinom(n, 1, 0.5)
+means <- c(0)
+for (i in 1:n) {
+  means[i] <- mean(flips[1:i])
+}
+plot(means, type="l", ylim=c(0,1)); abline(h=0.5, col="red")
+```
+
+
+# RANDOM BINOMIAL WALK
+n <- 40000
+flip <- 2*rbinom(n, 1, 0.5)-1
+total <- c(0)
+for (i in 2:n) { total[i] <- total[i-1] + flip[i] }
+plot(total, ylim=c(-300, 300))
+abline(h=0)
+
+# BINOMIAL WALK FUNCTION
+random_binom_walk <- function(n) {
+  flip <- 2*rbinom(n, 1, 0.5)-1
+  total <- c(0)
+  for (i in 2:n) { total[i] <- total[i-1] + flip[i] }
+  return(total)
+}
+
+# GAUSSIAN WALK FUNCTION
+random_gaussian_walk <- function(n) {
+  flip <- rnorm(n)
+  total <- c(0)
+  for (i in 2:n) { total[i] <- total[i-1] + flip[i] }
+  return(total)
+}
+
+# SIMULATION OF SIX WALKS
+n <- 20000
+walks <- data.frame(matrix(0, nrow = n, ncol = 6))
+for (i in 1:6) { walks[i] = random_gaussian_walk(n); cat("walk ", i, " finished.\n")}
+par(mfrow=c(2,3))
+for (i in 1:6) { plot(walks[[i]], type="l", ylim=c(-300, 300)); abline(h=0, col="red") }
+par(mfrow=c(1,1))
+
+
+# SIMULATING LARGE NUMBER OF WALKS
+m <- 300
+n <- 2000
+walks <- data.frame(matrix(0, nrow = n, ncol = m))
+for (i in 1:m) { walks[i] = random_gaussian_walk(n) }
+distance <- c(0)
+for (i in 1:m) { distance[i] <- walks[n,i] }
+hist(distance, breaks=20, prob=TRUE)
+lines(density(distance), lwd=3, col="blue")
+
+**INSPIRED BY: http://nvenkataraman1.github.io/random-walks/**
