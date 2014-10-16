@@ -1,0 +1,45 @@
+---
+title: "Tufte Handout"
+author: "John Smith"
+date: "August 13th, 2014"
+output: rmarkdown::tufte_handout
+---
+
+population_curve <- function() {
+  # Create left-skewed population distribution
+  a <- rnorm(n=60000, mean=600, sd=50)
+  b <- rnorm(n=30000, mean=725, sd=50)
+  c <- rnorm(n=20000, mean=850, sd=50)
+  
+  pop <- c(a,b,c)
+  plot(density(pop), col="blue", lwd=2, xlim=c(400,1000))
+  abline(v=mean(pop))
+  abline(v=median(pop), lty="dashed")
+  
+  return(pop)
+}
+
+sample_histogram <- function(population, num.samples) {
+  sample.means <- c(0)
+  for (i in 1:num.samples) {
+    sample.means[i] <- mean( sample(pop, 100) )
+  }
+  hist(sample.means, prob=TRUE, xlim=c(400,1000), main=paste("sample size = ", num.samples))
+  lines(density(sample.means), col="red", lwd=2)
+  return(sample.means)
+}
+set.seed(30)
+par(mfrow=c(2,1))
+population <- population_curve()
+means <- sample_histogram(population, 10)
+means
+par(mfrow=c(1,1))
+
+set.seed(-1759254325)
+par(mfrow=c(5,1))
+population <- population_curve()
+sample_size <- 5^seq(1:4)
+for(size in sample_size) {
+  sample_histogram(population, size)
+}
+par(mfrow=c(1,1))
