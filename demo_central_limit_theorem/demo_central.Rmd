@@ -37,13 +37,14 @@ plot(total, type="l", ylim=c(-300, 300))
 abline(h=0)
 ```
 
-When we plot out our total number of points, rather than converging, it seems to just randomly walk away! *Random walks* are one way of modeling many everyday phenomena that are affected by so many variables that they appear random in their progress: stock markets, weather fluctuations, ant foraging, and more^[http://en.wikipedia.org/wiki/Random_walk].
+When we plot out our total number of points, rather than converging, it seems to just randomly walk away! *Random walks* are one way of modeling many everyday phenomena that are affected by so many variables that they appear random in their progress: stock markets, weather fluctuations, ant foraging, brownian motion, and more^[http://en.wikipedia.org/wiki/Random_walk].
 
 \newthought{But how far from their starting points} do random walks go *on average*? It isn't easy to tell, so let's simulate random walks and find out!
+\marginnote{We first create a `function` that creates binomial walks for us. It reuses the code we saw earlier. This function takes the number of `steps` to walk as a parameter.}
 ```{r echo=FALSE}
 set.seed(100)
 ```
-```{r binomial_walk_simulation, cache=TRUE} 
+```{r binomial_walk_function, cache=TRUE} 
 # Random binomial walk function
 random_binomial_walk <- function(steps) {
   flip <- 2*rbinom(n, 1, 0.5)-1
@@ -51,15 +52,17 @@ random_binomial_walk <- function(steps) {
   for (i in 2:steps) { total[i] <- total[i-1] + flip[i] }
   return(total)
 }
+```
+\marginnote{We first create a `data.frame` that is the size of a 2x3 matrix. The we use a loop to run our random binomial walk function six times. The result of our six function calls are stored in the data.frame
 
+We then plot the six walks. The `mfrow` function lets us put plots side-by-side in a grid pattern! At the end, we have to be careful to call mfrow again to return the graphics setting to plot 1x1 figures at a time.}
+```{r plot_six_binomial_walks, fig.cap = "Six Binomial Walks", fig.width=7, fig.height=4.5, cache=TRUE}
 # Simulate six random walks of 5000 steps each
 walks <- data.frame(matrix(0, nrow = 5000, ncol = 6))
 for (i in 1:6) { 
-  walks[i] <- random_binomial_walk(n);
+  walks[i] <- random_binomial_walk(5000);
 }
-```
-\marginnote{Even with a small number of random walks, we see they can go anywhere. It will be hard to plot a large number of walks. So let's simulate a large number of walks and see how their final distance from zero is distributed.}
-```{r plot_six_binomial_walks, fig.cap = "Six Binomial Walks", fig.width=7, fig.height=4.5, cache=TRUE}
+
 # Plot out our six random walks
 par(mfrow=c(2,3)) # setup plotting to 2rows x 3 columns
 for (i in 1:6) { 
@@ -69,40 +72,20 @@ abline(h=0, col="red")
 par(mfrow=c(1,1)) # return graphics settings to 1 x 1
 ```
 
-Even with a small number of random walks, we see they can go anywhere. It will be hard to plot a large number of walks. So let's simulate a large number of walks and see how their final distance from zero is distributed.
+Even with a small number of random walks, we see they can go anywhere. It will be hard to plot a large number of walks. So let's simulate a large number of walks and see what distance from zero points each walk ended up. We will use m=3000 walks, each having n=2000 steps.
 ```{r dist_binomial_walks, cache=TRUE}
 m <- 3000
 n <- 2000
 walks <- data.frame(matrix(0, nrow = n, ncol = m))
 for (i in 1:m) { walks[i] = random_binomial_walk(n) }
-distance <- c(0)
-for (i in 1:m) { distance[i] <- walks[n,i] }
+final.points <- c(0)
+for (i in 1:m) { final.points[i] <- walks[n,i] }
 ```
 
-
+We can now plot the distribution of how many points away from zero (positive or negative) each each of the 3000 walks finally got to, after 2000 steps.
 ```{r plot_dist_binomial_walks, fig.cap = "Distribution of binomial walks", fig.height=4, fig.margin=TRUE, cache=TRUE}
-hist(distance, breaks=20, prob=TRUE)
-lines(density(distance), lwd=3, col="blue")
+hist(final.points, breaks=20, prob=TRUE)
+lines(density(final.points), lwd=3, col="blue")
 ```
 
-```{r random_gaussian_walks, cache=TRUE, echo=FALSE}
-# GAUSSIAN WALK FUNCTION
-random_gaussian_walk <- function(n) {
-  flip <- rnorm(n)
-  total <- c(0)
-  for (i in 2:n) { total[i] <- total[i-1] + flip[i] }
-  return(total)
-}
-
-m <- 3000
-n <- 2000
-walks <- data.frame(matrix(0, nrow = n, ncol = m))
-for (i in 1:m) { walks[i] = random_gaussian_walk(n) }
-distance <- c(0)
-for (i in 1:m) { distance[i] <- walks[n,i] }
-```
-
-```{r plot_dist_gaussian_walks, fig.cap = "Distribution of gaussian walks", fig.height=4, fig.margin=TRUE, cache=TRUE, echo=FALSE}
-hist(distance, breaks=20, prob=TRUE)
-lines(density(distance), lwd=3, col="blue")
-```
+Does this bell-shaped symmetric distribution look familiar? It is our old friend the *normal distribution* again!
