@@ -1,5 +1,5 @@
 ---
-title: "Random Walks"
+title: "Distribution of Random Walks"
 output: rmarkdown::tufte_handout
 ---
 

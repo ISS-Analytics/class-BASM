@@ -1,5 +1,5 @@
 ---
-title: "Tufte Handout"
+title: "Distrbution of Sample Means"
 author: "John Smith"
 date: "August 13th, 2014"
 output: rmarkdown::tufte_handout
