@@ -21,9 +21,9 @@ plot(means, type="l", ylim=c(0,1))
 abline(h=0.5, col="red")
 ```
 
-We see that the average number of points quickly converges to 0.5 (a *half*), just as we suspected. This is our common intuition about how probabilities average out over time.
+We see that the average number of points quickly converges to 0.5 (a *half*), just as we expected. This is our common intuition about how probabilities average out over time.
 
-\newthought{Now, instead of average probabilities}, let's make a game where we gain 1 point for heads and lose one point for tails.  How many *total points* would we make over time? Will it converge?
+\newthought{Now, instead of average probabilities}, let's play a game where we gain one point for heads and lose one point for tails.  How many *total points* would we make over time? Will it converge?
 ```{r echo=FALSE}
 set.seed(60)
 ```
@@ -56,7 +56,7 @@ random_binomial_walk <- function(steps) {
 \marginnote{We first create a `data.frame` that is the size of a 2x3 matrix. The we use a loop to run our random binomial walk function six times. The result of our six function calls are stored in the data.frame
 
 We then plot the six walks. The `mfrow` function lets us put plots side-by-side in a grid pattern! At the end, we have to be careful to call mfrow again to return the graphics setting to plot 1x1 figures at a time.}
-```{r plot_six_binomial_walks, fig.cap = "Six Binomial Walks", fig.width=7, fig.height=4.5, cache=TRUE}
+```{r plot_six_binomial_walks, fig.cap = "Six Random Binomial Walks", fig.width=7, fig.height=4.5, cache=TRUE}
 # Simulate six random walks of 5000 steps each
 walks <- data.frame(matrix(0, nrow = 5000, ncol = 6))
 for (i in 1:6) { 
