@@ -1,0 +1,131 @@
+---
+title: "Bootstrapping for Centrality"
+output: rmarkdown::tufte_handout
+---
+# Population and Sample Information
+We cannot always know details about a population, even when we have lots of data available to us! For this exercise, let's define and visualize a population that we will sample from later.
+```{r echo=FALSE}
+set.seed(50)
+```
+```{r population, fig.cap = "Our Original Population", dpi=150, fig.margin=TRUE, fig.width=5, fig.height=4, cache=TRUE}
+a <- rnorm(n=500000, mean=55, sd=5)
+b <- rnorm(n=200000, mean=40, sd=5)
+c <- rnorm(n=100000, mean=30, sd=5)
+pop <- c(a,b,c)
+plot(density(pop), col="blue", lwd=2)
+```
+The following exercises assume we do not know any statistics about the population. To begin, let us take a sample from the population. We will reuse this sample throughout the following exercises.
+Here is how we take a sample of 100 data items from the population and compute the sample mean:
+```{r echo=FALSE}
+set.seed(35)
+```
+```{r sample0, echo=TRUE}
+n = 200
+sample0 = sample(pop, n)
+sample.mean = mean(sample0)
+sample.mean
+```
+
+# Refresher: Testing Hypotheses Using t-tests (parametric approach)
+
+First, let's recall how to use the classical statistical approach to test hypotheses about the population mean.
+
+\newthought{Let's take a sample} and calculate some basic statistics we can use in testing for the mean.
+\marginnote {We compute the sample mean, sample standard deviation, and standard error. Finally, we use `data.frame()` to show the results as a table of information.}
+```{r sample_stats}
+sample.sd = sd(sample0)
+sample.se = sample.sd/sqrt(n)
+data.frame(sample.mean, sample.sd, sample.se)
+```
+We can use this information to start testing hypotheses using our classical parametric approach.
+
+## $H_{null}: \mu_{0} \geq 49.50;  H_{alt}: \mu_{0} < 49.50$
+We need to find how far our sample mean is from the hypothesized mean, using a t-value:
+$t=(\mu_{0} - \overline{x})/s_{\overline{x}}$
+
+If our t-value is too far to the right of zero, then our hypothesized mean is much bigger than the sample mean.
+\marginnote{To test this hypothesis, we will first find out our t-value. Then, we use the `pt()` function compute how likely this hypothesis is to be false.}
+```{r}
+hyp.mean = 49.50
+hyp.t = (hyp.mean - sample.mean)/sample.se
+hyp.p = 1-pt(hyp.t, df=n-1)     # looking at the right tail
+data.frame(hyp.t, hyp.p)
+```
+For this first hypothesis, we can interpret `hyp.t` and `hyp.p` as a one-tailed t-test. Here, the null hypothesis is somewhat unlikely: `hyp.p` shows that that `sample.mean` would be $\geq 49.50$ in only 3.39% of possible samples we could take. So we can reject the null hypothesis at the 5% significance level but not the 1% significance levels. If we wanted to be precise, we could simply say that we reject $H_{null}$ at the 3.39% significance level.
+
+## $H_{null}: \mu_{0} = 49.50;  H_{alt}: \mu_{0} \neq 49.50$
+We would reject $H_{null}$ if our t-value is too far from zero in either positive *or* negative direction (two-tailed t-test). We can use the same t-value (`hyp.t`) and p-value (`hyp.p`) calculated previously. Recall that our p-value shows that the hypothesized mean is in the extreme 3.39% of sampling means. So we know that `hyp.t` is not in the last 0.5%, or 2.5% of sampling means in the right tail, so we *cannot reject* $H_{null}$ at the 1% or 5% significance levels.
+
+## $H_{null}: \mu_{0} \leq 49.50;  H_{alt}: \mu_{0} > 49.50$
+
+We do not need to test this pair of hypotheses. Our sample mean ($\overline{x}$) is already smaller than the 49.50 so the sample we got cannot help us reject this $H_{null}$.
+
+\pagebreak
+
+# Resampling from our Sample
+We are going to try doing hypotheses tests again, this time using a type of resampling called bootstrapping. We start by using the sample (`sample0`) we took at the beginning of the exercise. Let's recall its size and mean:
+```{r}
+length(sample0)
+sample.mean
+```
+
+## Bootstrapping
+Now let's bootstrap for the mean! We are going to take 3000 samples from our original sample (`sample0`).
+We create `resampled.means` as an empty list to start with. Then, we use a loop that runs 3000 times, or *iterations*, using `i` as the counter to keep track of which iteration we are at. On each iteration (*i*), we resample 200 items from our original sample, with replacement. This means that our resampled data could contain duplicate values from the original sample.
+```{r}
+resampled.means = c()
+for (i in 1:3000) {
+  resample = sample(sample0, 200, replace = TRUE)
+  resampled.means[i] = mean(resample)
+}
+```
+Our list variable, `resampled.means`, now contains the mean values of 3000 samples created from the values in our original sample. We can treat this list of 3000 means as the sampling means of a full population! We do not need to calculate any additional statistics or run t-tests. We simply *check* whether any hypothesized mean fall inside our 95% or 99% confidence intervals of the 3000 means.
+
+\newthought{Recall the earlier hypotheses} we tested:
+
+## $H_{null}: \mu_{0} \geq 49.50;  H_{alt}: \mu_{0} < 49.50$
+```{r}
+quantile(resampled.means, probs=c(0.95, 0.99))
+```
+Looks like our hypothesized mean (49.50) falls within the extreme right 5% of sampling means, so we *can reject* $H_{null}$ at the 5% significance level *but not* at the 1% significance level.
+
+## $H_{null}: \mu_{0} = 49.50;  H_{alt}: \mu_{0} \neq 49.50$
+```{r}
+quantile(resampled.means, probs=c(0.025, 0.975)) # 95% CI
+quantile(resampled.means, probs=c(0.005, 0.995)) # 99% CI
+```
+This time we check both tails of the distribution of sampling means. It looks like the hypothesized mean (49.50) falls *within* the 95% confidence interval, so we *cannot reject* $H_{null}$ at the 5% or 1% significance level.
+
+\newthought{Note} that the results of hypothesis testing using bootstrapping are the same as using the t-tests earlier! Using bootstrapping, we did not have to use any statistical formula or specialized knowledge. However, we did have to write a little bit of code (a `for` loop). This technique will become especially useful when we are doing statistics in circumstances where we cannot know the distribution of a statistic, such as the population median (instead of the mean).
+
+\pagebreak
+
+# Visualizing the Bootstrap
+We can plot out the sample we took earlier (`sample0`) and compare it to the distribution of the 3000 bootstrapped means. We see that the bootstrapped means follow a somewhat normal distribution, as we would expect according to the central limit theorem.
+```{r resamples, fig.cap = "Sample Data vs Resampled Means", dpi=150, fig.fullwidth=TRUE, fig.width=10, fig.height=6, cache=TRUE, fig.cap="The density curve on top is of our sample data. The density curve on the bottom is of our bootstrapped means. The dashed vertical lines are the sample mean."}
+## Plot resampled means
+par(mfrow = c(2, 1))
+plot(density(sample0), xlim=c(0,80))
+abline(v=sample.mean, lty="dashed")
+plot(density(resampled.means), xlim=c(0,80), col="red", lwd=2)
+abline(v=sample.mean, lty="dashed")
+par(mfrow = c(1, 1))
+```
+
+\pagebreak
+
+# What the Bootstrap Does
+To see what bootstrapping does, let us draw our original population density curve against the 3000 bootstrapped samples.
+```{r bootstrap, fig.cap = "Bootstraps try to recreate the population: thick dark curve is the population density; green hairline-thin curves are the bootrstapped samples", dpi=150, fig.width=7, fig.height=5.5, cache=TRUE}
+## Rebuilding our population with resampling
+n=200
+resamples=c()
+plot(density(pop), lwd=3)
+for (i in 1:3000) {
+  resamples = c(sample(sample0, n, replace=TRUE))
+  lines(density(resamples), col=rgb(0,0.4,0,0.01))
+}
+lines(density(pop), lwd=3)
+```
+
+We can see that the bootstrapped samples approximate the population! In this sense, bootstrapping is trying to recreate the original population data which we often cannot collect.
